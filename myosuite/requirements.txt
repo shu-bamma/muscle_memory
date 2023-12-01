@@ -1,0 +1,11 @@
+click
+sk-video
+gym==0.13
+termcolor
+flatten_dict
+h5py
+numpy
+mujoco==2.3.7
+dm-control==1.0.14
+Pillow
+pink-noise-rl
