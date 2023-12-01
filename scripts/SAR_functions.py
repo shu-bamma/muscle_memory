@@ -182,7 +182,7 @@ class SynergyWrapper(gym.ActionWrapper):
         return action[0]
     
     
-def SAR_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66, syn_nosyn=True):
+def SAR_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66, syn_nosyn=True, ckpt_path=None):
     """
     Trains a policy using sb3 implementation of SAC + SynNoSynWrapper.
     
@@ -194,6 +194,7 @@ def SAR_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66
     pca: the PCA object
     normalizer: the normalizer object
     phi: float; blend parameter between synergistic and nonsynergistic activations
+    ckpt_path: str; optional; path to a checkpoint to load
     """
     if syn_nosyn:
         env = SynNoSynWrapper(gym.make(env_name), ica, pca, normalizer, phi)
@@ -205,16 +206,18 @@ def SAR_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66
     net_shape = [400, 300]
     policy_kwargs = dict(net_arch=dict(pi=net_shape, qf=net_shape))
     
-    model = SAC('MlpPolicy', env, learning_rate=linear_schedule(.001), buffer_size=int(3e5),
+    model = SAC('MlpPolicy', env, learning_rate=linear_schedule(.001), buffer_size=int(5e6),
             learning_starts=5000, batch_size=256, tau=.02, gamma=.98, train_freq=(1, "episode"),
             gradient_steps=-1,policy_kwargs=policy_kwargs, verbose=1)
-    
+    if ckpt_path:
+        model = model.load(ckpt_path, env=env, verbose=1)
     succ_callback = SaveSuccesses(check_freq=1, env_name=env_name+'_'+seed, 
                              log_dir=f'{policy_name}_successes_{env_name}_{seed}')
     
     model.set_logger(configure(f'{policy_name}_results_{env_name}_{seed}'))
     model.learn(total_timesteps=int(timesteps), callback=succ_callback, log_interval=4)
     model.save(f"{policy_name}_model_{env_name}_{seed}")
+    model.save_replay_buffer(f'{policy_name}_replay_buffer_{env_name}_{seed}')
     env.save(f'{policy_name}_env_{env_name}_{seed}')
     
     

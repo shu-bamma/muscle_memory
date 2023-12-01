@@ -242,8 +242,6 @@ def load_manipulation_SAR(path=None):
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.join(current_dir, '../myosuite/myosuite/agents/SAR_pretrained/locomotion')
-
-    breakpoint()
     if path is not None:
         root_dir = path
     ica = joblib.load(os.path.join(root_dir, 'ica.pkl'))
