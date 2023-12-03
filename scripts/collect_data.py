@@ -10,7 +10,7 @@ def main(args):
 
     frames = []
     env = SynNoSynWrapper(gym.make(env_name), ica, pca, normalizer, phi)
-
+    
     camera = "front"
 
     is_solved = []

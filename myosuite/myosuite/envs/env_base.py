@@ -314,6 +314,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
             self.visual_dict = self.get_visuals(sim=self.sim_obsd)
 
         # recoved observation vector from the obs_dict
+        # breakpoint()
         t, obs = self.obsdict2obsvec(self.obs_dict, self.obs_keys)
         return obs
 

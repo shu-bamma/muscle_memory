@@ -270,6 +270,10 @@ def load_locomotion_SAR():
 
     return ica, pca, normalizer
 
+
+
+
+
 class SynNoSynWrapper(gym.ActionWrapper):
     """
     gym.ActionWrapper that reformulates the action space as the combination of a task-general synergy space and a
@@ -296,6 +300,36 @@ class SynNoSynWrapper(gym.ActionWrapper):
 
         return final_action
 
+#TODO: complete the retreive_sar function
+class MemoryOberserverWrapper(gym.ObservationWrapper):
+    """
+    gym.ObservationWrapper that reformulates the observation space as the synergy space combining the original 
+    obersation space with the SAR space from the memory.
+    """
+    def __init__(self, env, pca, lookup_table):
+        super().__init__(env)
+        self.pca=pca
+        self.lookup_table=lookup_table
+        origianl_obs_shape=env.observation_space.shape[0]
+        sar_dim=self.pca.components_.shape[0]
+        full_obs_sim=sar_dim+origianl_obs_shape
+        #for the stable_baselines3 encoder to refer to
+        self.observation_space= gym.spaces.Box(low=-10., high=10., shape=(full_obs_sim,),dtype=np.float32)
+
+    def retreive_sar(self, query):
+        return 0
+    
+    def observation(self, observation):
+        breakpoint()
+        self.query=observation[:]
+        sar=self.retreive_sar(self.query)
+        full_obs=np.append(sar,observation)
+        
+        
+        return full_obs
+
+
+
 class SynergyWrapper(gym.ActionWrapper):
     """
     gym.ActionWrapper that reformulates the action space as the synergy space and inverse transforms
@@ -312,6 +346,27 @@ class SynergyWrapper(gym.ActionWrapper):
     def action(self, act):
         action = self.pca.inverse_transform(self.ica.inverse_transform(self.scaler.inverse_transform([act])))
         return action[0]
+
+
+
+# class MemorySyergyWrapper(gym.ActionWrapper):
+#     """
+#     gym.ActionWrapper that reformulates the action space as the synergy space and inverse transforms
+#     synergy-exploiting actions back into the original muscle activation space.
+#     """
+#     def __init__(self, env, ica, pca, phi):
+#         super().__init__(env)
+#         self.ica = ica
+#         self.pca = pca
+#         self.scaler = phi
+    
+    
+#         self.action_space = gym.spaces.Box(low=-1., high=1., shape=(self.pca.components_.shape[0],),dtype=np.float32)
+
+#     def action(self, act):
+#         action = self.pca.inverse_transform(self.ica.inverse_transform(self.scaler.inverse_transform([act])))
+#         return action[0]
+
 
 def get_vid(name, env_name, seed, episodes, video_name, determ=False,
             pca=None, ica=None, normalizer=None, phi=None, is_sar=False, syn_nosyn=False):
