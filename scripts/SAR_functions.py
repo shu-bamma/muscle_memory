@@ -1,4 +1,5 @@
 from SAR_tutorial_utils import *
+from myosuite.utils.quat_math import quat2euler, euler2mat, euler2quat
 
 def train(env_name, policy_name, timesteps, seed):
     """
@@ -183,7 +184,7 @@ class SynergyWrapper(gym.ActionWrapper):
     
     
 
-def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66, syn_nosyn=True, ckpt_path=None, lookup_table=None):
+def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66, syn_nosyn=True, ckpt_path=None, lookup_key=None, lookup_sar=None):
     """
     Trains a policy using SAR retreival and sb3 implementation of SAC 
     
@@ -196,8 +197,8 @@ def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, 
     normalizer: the normalizer object
     phi: float; blend parameter between synergistic and nonsynergistic activations
     ckpt_path: str; optional; path to a checkpoint to load
-    lookup_table: str; lookup table for action conditionining using SAR
-    
+    lookup_key: np.array; lookup key to retrieve SAR data 
+    lookup_sar: np.array; SAR data
     """
     # assert 
     
@@ -207,8 +208,7 @@ def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, 
     else:
         env = SynergyWrapper(gym.make(env_name), ica, pca, normalizer)
     ###for the SAR conditionig
-    env=MemoryOberserverWrapper(env,pca,lookup_table)
-    breakpoint()
+    env = MemoryOberserverWrapper(env, lookup_key, lookup_sar)
     env = Monitor(env)
     env = DummyVecEnv([lambda: env])
     env = VecNormalize(env, norm_obs=True, norm_reward=False, clip_obs=10.)
@@ -226,7 +226,6 @@ def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, 
     succ_callback = SaveSuccesses(check_freq=1, env_name=env_name+'_'+seed, 
                              log_dir=f'{policy_name}_successes_{env_name}_{seed}')
     
-    breakpoint()
     model.set_logger(configure(f'{policy_name}_results_{env_name}_{seed}'))
     model.learn(total_timesteps=int(timesteps), callback=succ_callback, log_interval=4)
     model.save(f"{policy_name}_model_{env_name}_{seed}")

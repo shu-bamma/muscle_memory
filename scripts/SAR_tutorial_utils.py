@@ -19,6 +19,8 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 import joblib
+import torch
+from myosuite.utils.quat_math import quat2euler, euler2mat, euler2quat
 
 from typing import Callable
 import numpy as np
@@ -310,27 +312,40 @@ class MemoryOberserverWrapper(gym.ObservationWrapper):
     gym.ObservationWrapper that reformulates the observation space as the synergy space combining the original 
     obersation space with the SAR space from the memory.
     """
-    def __init__(self, env, pca, lookup_table):
+    def __init__(self, env, lookup_key, lookup_sar):
         super().__init__(env)
-        self.pca=pca
-        self.lookup_table=lookup_table
+        self.lookup_key = lookup_key
+        self.lookup_sar = lookup_sar
+        self.num_retrieval = 3
         origianl_obs_shape=env.observation_space.shape[0]
-        sar_dim=self.pca.components_.shape[0]
+        sar_dim = lookup_sar.shape[-1] * self.num_retrieval
         full_obs_sim=sar_dim+origianl_obs_shape
         #for the stable_baselines3 encoder to refer to
         self.observation_space= gym.spaces.Box(low=-10., high=10., shape=(full_obs_sim,),dtype=np.float32)
 
     def retreive_sar(self, query):
-        return 0
+        # Compute distances for each element in the batch
+        curr_pos = query[23:26]
+        curr_rot = euler2mat(query[32:35])
+        goal_rot = euler2mat(query[35:38])
+        query = np.concatenate([curr_pos, curr_rot.reshape(9), goal_rot.reshape(9)], axis=0)
+        query = torch.from_numpy(query).float().cuda()
+        
+        dist = torch.norm(self.lookup_key - query, dim=1, p=None)
+        knn = dist.topk(self.num_retrieval, largest=False)
+        indices = knn.indices.cpu().numpy()
+        
+        sars = self.lookup_sar[indices]
+        return sars
+
     
     def observation(self, observation):
-        breakpoint()
-        self.query=observation[:]
-        sar=self.retreive_sar(self.query)
-        full_obs=np.append(sar,observation)
-        
-        
-        return full_obs
+        self.query = observation
+        sars = self.retreive_sar(self.query)
+        for sar in sars:
+            observation = np.append(sar,observation)
+
+        return observation
 
 
 
