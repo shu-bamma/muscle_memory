@@ -165,7 +165,7 @@ def plot_zeroshot(ax, data, colors=None, total_width=0.8, single_width=1, legend
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
 
-def plot_results(smoothing=1000, experiment='locomotion', terrain=None):
+def plot_results(smoothing=1000, experiment='locomotion', terrain=None, path=None):
     """
     Plots the results for the specified experiment and terrain.
 
@@ -203,7 +203,11 @@ def plot_results(smoothing=1000, experiment='locomotion', terrain=None):
         plt.title(f'MyoLeg {terrain} locomotion task success comparison', size=14)
 
     elif experiment == 'manipulation':
-        sar_rl_file = './SAR-RL_successes_myoHandReorient100-v0_0/success_myoHandReorient100-v0_0.npy'
+        # sar_rl_file = './SAR-RL_successes_myoHandReorient100-v0_0/success_myoHandReorient100-v0_0.npy'
+        if path is None:
+            sar_rl_file = './SAR-RL_successes_myoHandReorient100-v0_0/success_myoHandReorient100-v0_0.npy'
+        else:
+            sar_rl_file = path
         rl_e2e_file = './RL-E2E_successes_myoHandReorient100-v0_0/success_myoHandReorient100-v0_0.npy'
 
         if os.path.isfile(sar_rl_file):
