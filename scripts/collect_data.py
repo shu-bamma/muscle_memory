@@ -9,7 +9,8 @@ def main(args):
     phi = 0.66
 
     frames = []
-    env = SynNoSynWrapper(gym.make(env_name), ica, pca, normalizer, phi)
+    # env = SynNoSynWrapper(gym.make(env_name), ica, pca, normalizer, phi)
+    env = gym.make(env_name)
     
     camera = "front"
 

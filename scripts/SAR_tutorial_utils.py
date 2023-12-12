@@ -235,7 +235,10 @@ def plot_results(smoothing=1000, experiment='locomotion', terrain=None, path=Non
     plt.legend(fontsize=11, loc='upper left')
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
-    plt.show()
+    # Save the image.
+    
+    
+    # plt.show()
 
 def load_manipulation_SAR(path=None):
     """

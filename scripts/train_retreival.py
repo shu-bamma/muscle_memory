@@ -53,11 +53,14 @@ def main(args):
     # lookup_observation: # samples, obs_dim
     # lookup_sar: # samples, sar_dim
 
-    policy_name = "Retrieval_SAR-RL" if not args.flat_action else "Retrieval_SAR-RL_flat"
+    policy_name = args.policy_name
+    syn_nosyn = False if args.no_sar else True
+    retrieval_env = False if args.no_retrieval else True
+
     muscle_mem_RL(
         env_name=args.env,
         policy_name=policy_name,
-        timesteps=1.5e6,
+        timesteps=3e6,
         seed=str(args.seed),
         ica=ica,
         pca=pca,
@@ -65,6 +68,8 @@ def main(args):
         phi=0.66,
         lookup_key=observations,
         lookup_sar=sar,
+        syn_nosyn=syn_nosyn,
+        retrieval_env=retrieval_env
     )
 
 
@@ -81,6 +86,18 @@ if __name__ == "__main__":
         type=int,
         help="How many percent of the data to use for SAR.",
         required=True,
+    )
+    parser.add_argument(
+        "--policy_name",
+        required=True
+    )
+    parser.add_argument(
+        "--no_sar",
+        action="store_true"
+    )
+    parser.add_argument(
+        "--no_retrieval",
+        action="store_true"
     )
     parser.add_argument("--env", type=str, required=True)
     parser.add_argument("--seed", type=int, default=0)
