@@ -5,7 +5,7 @@ import os
 
 def main(args):
     os.environ["CUDA_VISIBLE_DEVICES"] = args.device
-    breakpoint()
+    # breakpoint()
     ica,pca,normalizer = load_manipulation_SAR(args.sar_path)
     # SAR is used to train on a 100-object reorientation task, Reorient100-v0
     SAR_RL(env_name='myoHandReorient100-v0', policy_name='SAR-RL', timesteps=1.5e6, 

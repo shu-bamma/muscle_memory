@@ -224,7 +224,7 @@ def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, 
     if ckpt_path:
         model = model.load(ckpt_path, env=env, verbose=1)
     succ_callback = SaveSuccesses(check_freq=1, env_name=env_name+'_'+seed, 
-                             log_dir=f'{policy_name}_successes_{env_name}_{seed}')
+                             log_dir=f'/home/shubham/myo-dex/muscle_memory/logs/{policy_name}_successes_{env_name}_{seed}')
     
     model.set_logger(configure(f'{policy_name}_results_{env_name}_{seed}'))
     model.learn(total_timesteps=int(timesteps), callback=succ_callback, log_interval=4)
@@ -262,7 +262,7 @@ def SAR_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66
     env = DummyVecEnv([lambda: env])
     env = VecNormalize(env, norm_obs=True, norm_reward=False, clip_obs=10.)
 
-    breakpoint()
+    # breakpoint()
     net_shape = [400, 300]
     policy_kwargs = dict(net_arch=dict(pi=net_shape, qf=net_shape))
     
@@ -274,12 +274,12 @@ def SAR_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66
     succ_callback = SaveSuccesses(check_freq=1, env_name=env_name+'_'+seed, 
                              log_dir=f'{policy_name}_successes_{env_name}_{seed}')
     
-    breakpoint()
+    # breakpoint()
     model.set_logger(configure(f'{policy_name}_results_{env_name}_{seed}'))
     model.learn(total_timesteps=int(timesteps), callback=succ_callback, log_interval=4)
-    model.save(f"{policy_name}_model_{env_name}_{seed}")
-    model.save_replay_buffer(f'{policy_name}_replay_buffer_{env_name}_{seed}')
-    env.save(f'{policy_name}_env_{env_name}_{seed}')
+    model.save(f"/home/shubham/myo-dex/muscle_memory/logs/{policy_name}_model_{env_name}_{seed}")
+    model.save_replay_buffer(f'/home/shubham/myo-dex/muscle_memory/logs/{policy_name}_replay_buffer_{env_name}_{seed}')
+    env.save(f'/home/shubham/myo-dex/muscle_memory/logs/{policy_name}_env_{env_name}_{seed}')
     
     
     
