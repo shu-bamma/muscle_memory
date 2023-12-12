@@ -184,7 +184,7 @@ class SynergyWrapper(gym.ActionWrapper):
     
     
 
-def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66, syn_nosyn=True, ckpt_path=None, lookup_key=None, lookup_sar=None):
+def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, phi=.66, syn_nosyn=True, ckpt_path=None, lookup_key=None, lookup_sar=None, retrieval_env=True):
     """
     Trains a policy using SAR retreival and sb3 implementation of SAC 
     
@@ -202,13 +202,13 @@ def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, 
     """
     # assert 
     
+    env = gym.make(env_name)
     
     if syn_nosyn:
-        env = SynNoSynWrapper(gym.make(env_name), ica, pca, normalizer, phi)
-    else:
-        env = SynergyWrapper(gym.make(env_name), ica, pca, normalizer)
-    ###for the SAR conditionig
-    env = MemoryOberserverWrapper(env, lookup_key, lookup_sar)
+        env = SynNoSynWrapper(env, ica, pca, normalizer, phi)
+    if retrieval_env:
+        ###for the SAR conditionig
+        env = MemoryOberserverWrapper(env, lookup_key, lookup_sar)
     env = Monitor(env)
     env = DummyVecEnv([lambda: env])
     env = VecNormalize(env, norm_obs=True, norm_reward=False, clip_obs=10.)
@@ -216,8 +216,8 @@ def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, 
     net_shape = [400, 300]
     policy_kwargs = dict(net_arch=dict(pi=net_shape, qf=net_shape))
     
-    model = SAC('MlpPolicy', env, learning_rate=linear_schedule(.001), buffer_size=int(5e6),
-            learning_starts=5000, batch_size=256, tau=.02, gamma=.98, train_freq=(1, "episode"),
+    model = SAC('MlpPolicy', env, learning_rate=linear_schedule(.001), buffer_size=int(3e6),
+            learning_starts=3000, batch_size=256, tau=.02, gamma=.98, train_freq=(1, "episode"),
             gradient_steps=-1,policy_kwargs=policy_kwargs, verbose=1)
     
     
@@ -229,7 +229,7 @@ def muscle_mem_RL(env_name, policy_name, timesteps, seed, ica, pca, normalizer, 
     model.set_logger(configure(f'{policy_name}_results_{env_name}_{seed}'))
     model.learn(total_timesteps=int(timesteps), callback=succ_callback, log_interval=4)
     model.save(f"{policy_name}_model_{env_name}_{seed}")
-    model.save_replay_buffer(f'{policy_name}_replay_buffer_{env_name}_{seed}')
+    # model.save_replay_buffer(f'{policy_name}_replay_buffer_{env_name}_{seed}')
     env.save(f'{policy_name}_env_{env_name}_{seed}')
     
 
